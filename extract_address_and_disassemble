@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Author: DooMLoRD@XDA
+#
+# Script to extract and search for required address for perf_event exploit
+#
+# Usage:
+#  extract_address_and_disassemble zImage
+#
+# Output:
+#  addresses.txt - this will contain the 5 crucial addresses from the kallsyms
+#  kernel.dasm   - this will contain the disassembelled kernel
+#
+
+# Update path to toolchain
+export TC=~/android-toolchain-eabi-linaro-4.6-2011.10/bin
+echo "Unpacking zImage"
+# following is only for kernels packed with LZO compression
+LOC=`grep -P -a -b --only-matching '\x89LZO\x00' $1 | tail -1 | cut -d: -f 1`
+if [ $LOC ]
+then
+	dd if=$1 bs=$LOC skip=1 | lzop -do kernel.Image
+	if [ -e kernel.Image ]
+	then
+		echo "DONE unpacking zImage"
+		echo "Grabbing addresses"
+		~/android/scripts/kallsymsprint.x86 kernel.Image | grep prepare_kernel_cred > tmp.log
+		~/android/scripts/kallsymsprint.x86 kernel.Image | grep commit_creds >> tmp.log
+		~/android/scripts/kallsymsprint.x86 kernel.Image | grep remap_pfn_range >> tmp.log
+		~/android/scripts/kallsymsprint.x86 kernel.Image | grep tty_default_fops >> tmp.log
+		~/android/scripts/kallsymsprint.x86 kernel.Image | grep sw_perf_event_destroy >> tmp.log
+
+		cat tmp.log  | grep " prepare_kernel_cred" >> addresses.txt
+		cat tmp.log  | grep " commit_creds" >> addresses.txt
+		cat tmp.log  | grep " remap_pfn_range" >> addresses.txt
+		cat tmp.log  | grep " tty_default_fops" >> addresses.txt
+		cat tmp.log  | grep " sw_perf_event_destroy" >> addresses.txt
+		rm tmp.log
+
+		echo "Disassembling kernel"
+		$TC/arm-eabi-objdump --disassemble-all -b binary -m arm --adjust-vma=0xc0008000 kernel.Image > kernel.dasm
+
+	else
+		echo "ERROR! unpacking zImage"
+	fi
+else
+	echo "ERROR! zImage has different compression"
+fi
