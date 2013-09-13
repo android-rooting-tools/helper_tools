@@ -55,22 +55,22 @@ then
 	then
 		echo "DONE unpacking zImage"
 		echo "Grabbing addresses"
-		~/android/scripts/kallsymsprint.x86 kernel.Image > kallsyms.txt
+		./kallsymsprint.x86 kernel.Image > kallsyms.txt
 
 		cat kallsyms.txt | grep " prepare_kernel_cred" >> addresses.txt
 		cat kallsyms.txt | grep " commit_creds" >> addresses.txt
 		cat kallsyms.txt | grep " remap_pfn_range" >> addresses.txt
 
 		echo "Disassembling kernel for specific functions"
-		~/android/scripts/arm7-dasm kernel.Image c0008000 pty_init kallsyms.txt > pty_init.dasm
-		~/android/scripts/arm7-dasm kernel.Image c0008000 sw_perf_event_destroy kallsyms.txt > sw_perf_event_destroy.dasm
+		./arm7-dasm kernel.Image c0008000 pty_init kallsyms.txt > pty_init.dasm
+		./arm7-dasm kernel.Image c0008000 sw_perf_event_destroy kallsyms.txt > sw_perf_event_destroy.dasm
 
 		echo "searching for ptmx_fops"
-		ADDR_PTMX_FOPS=`~/android/scripts/get-ptmx_fops pty_init.dasm`
+		ADDR_PTMX_FOPS=`./get-ptmx_fops pty_init.dasm`
 		echo "$ADDR_PTMX_FOPS = (hexdec addition)    ptmx_fops"  >> addresses.txt
 
 		echo "searching for perf_swevent_enabled"
-		ADDR_SWPREF=`~/android/scripts/get-perf_swevent_enabled sw_perf_event_destroy.dasm`
+		ADDR_SWPREF=`./get-perf_swevent_enabled sw_perf_event_destroy.dasm`
 		echo "$ADDR_SWPREF perf_swevent_enabled"  >> addresses.txt
 
 	else
