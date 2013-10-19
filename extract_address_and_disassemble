@@ -32,16 +32,24 @@ else
 		echo "Unpacking zImage"
 		dd if=$1 bs=$LOC1 skip=1 | lzop -do kernel.Image
 	else
-
-		# following is only for kernels packed with GZ compression
-		LOC1=`grep -P -a -b -m 1 --only-matching '\x1f\x8b\x08' $1 | tail -1 | cut -d: -f 1`
+		# following is only for kernels packed with LZ4 compression
+		LOC1=`grep -P -a -b --only-matching '\x02\x21\x4c\x18' $1 | tail -1 | cut -d: -f 1`
 		if [ $LOC1 ]
 		then
-			echo "GZ compression detected"
+			echo "LZ4 compression detected"
 			echo "Unpacking zImage"
-			dd if=$1 bs=$LOC1 skip=1 | gzip -dc > kernel.Image
+			dd if=$1 bs=$LOC1 skip=1 | lz4 -d > kernel.Image
 		else
-			echo "Unsupported compression!"
+			# following is only for kernels packed with GZ compression
+			LOC1=`grep -P -a -b -m 1 --only-matching '\x1f\x8b\x08' $1 | tail -1 | cut -d: -f 1`
+			if [ $LOC1 ]
+			then
+				echo "GZ compression detected"
+				echo "Unpacking zImage"
+				dd if=$1 bs=$LOC1 skip=1 | gzip -dc > kernel.Image
+			else
+				echo "Unsupported compression!"
+			fi
 		fi
 
 	fi
