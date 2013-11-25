@@ -68,6 +68,7 @@ then
 		cat kallsyms.txt | grep " prepare_kernel_cred" >> addresses.txt
 		cat kallsyms.txt | grep " commit_creds" >> addresses.txt
 		cat kallsyms.txt | grep " remap_pfn_range" >> addresses.txt
+		cat kallsyms.txt | grep " vmalloc_exec" >> addresses.txt
 
 		echo "Disassembling kernel for specific functions"
 		~/android/scripts/arm7-dasm kernel.Image c0008000 pty_init kallsyms.txt > pty_init.dasm
