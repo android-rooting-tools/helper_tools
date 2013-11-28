@@ -72,6 +72,7 @@ then
 
 		echo "Disassembling kernel for specific functions"
 		~/android/scripts/arm7-dasm kernel.Image c0008000 pty_init kallsyms.txt > pty_init.dasm
+		~/android/scripts/arm7-dasm kernel.Image c0008000 unix98_pty_init kallsyms.txt >> pty_init.dasm
 		~/android/scripts/arm7-dasm kernel.Image c0008000 sw_perf_event_destroy kallsyms.txt > sw_perf_event_destroy.dasm
 
 		echo "searching for ptmx_fops"
